@@ -1068,6 +1068,7 @@ func ctyCollectionValues(val cty.Value) []cty.Value {
 func ctySequenceDiff(old, new []cty.Value) []*plans.Change {
 	var ret []*plans.Change
 	lcs := objchange.LongestCommonSubsequence(old, new)
+
 	var oldI, newI, lcsI int
 	for oldI < len(old) || newI < len(new) || lcsI < len(lcs) {
 		for oldI < len(old) && (lcsI >= len(lcs) || !old[oldI].RawEquals(lcs[lcsI])) {
@@ -1090,6 +1091,7 @@ func ctySequenceDiff(old, new []cty.Value) []*plans.Change {
 			})
 			oldI++
 		}
+
 		for newI < len(new) && (lcsI >= len(lcs) || !new[newI].RawEquals(lcs[lcsI])) {
 			ret = append(ret, &plans.Change{
 				Action: plans.Create,
@@ -1098,11 +1100,12 @@ func ctySequenceDiff(old, new []cty.Value) []*plans.Change {
 			})
 			newI++
 		}
+
 		if lcsI < len(lcs) {
 			ret = append(ret, &plans.Change{
 				Action: plans.NoOp,
-				Before: new[newI],
-				After:  new[newI],
+				Before: lcs[lcsI],
+				After:  lcs[lcsI],
 			})
 
 			// All of our indexes advance together now, since the line
