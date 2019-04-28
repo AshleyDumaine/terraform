@@ -155,18 +155,20 @@ func (b *Backend) configure(ctx context.Context) error {
 			return fmt.Errorf("failed to load client certificate: %s", err)
 		}
 
-		// Load the CA cert
-		caCert, err := ioutil.ReadFile(data.Get("ca_file").(string))
-		if err != nil {
-			return fmt.Errorf("failed to load CA file: %s", err)
-		}
-		caCertPool := x509.NewCertPool()
-		caCertPool.AppendCertsFromPEM(caCert)
-
-		// Set up HTTPS client
 		tlsConfig := &tls.Config{
 			Certificates: []tls.Certificate{cert},
-			RootCAs:      caCertPool,
+		}
+
+		if data.Get("ca_file").(string) != "" {
+			// Load the CA cert
+			caCert, err := ioutil.ReadFile(data.Get("ca_file").(string))
+			if err != nil {
+				return fmt.Errorf("failed to load CA file: %s", err)
+			}
+			caCertPool := x509.NewCertPool()
+			caCertPool.AppendCertsFromPEM(caCert)
+
+			tlsConfig.RootCAs = caCertPool
 		}
 		tlsConfig.BuildNameToCertificate()
 		client.Transport.(*http.Transport).TLSClientConfig = tlsConfig
